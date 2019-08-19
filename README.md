@@ -1,0 +1,2 @@
+# bioinfo
+daily script
