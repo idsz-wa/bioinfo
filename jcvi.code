@@ -1,0 +1,33 @@
+#第一步 将gff转换为bed格式
+python2 -m jcvi.formats.gff bed --type=gene --key=ID GH_hua.gff -o GH_hau.bed
+#重复此步，将多个需要比对的文件设置为该格式
+
+#第二步 使用last进行比对 输出比对结果 并且进行过滤 输出anchor的block 用于基因共线性画图与比较 
+
+python2 -m jcvi.compara.catalog ortholog GH_hau GH_zju  --cscore=.99  
+#其中 GH_zju 等为前缀名，文件夹下须存在 GH_zju.cds 及 GH_zju.bed等文件 
+#如若要进行多组的比较 需要进行多个两两比对 
+#该步完成后 文件夹下会生成多个文件，其中包括以两个物种命名的pdf文件，为两者之间的基因dotplot 
+
+#第三步 进行block的过滤 Extract subset of blocks from anchorfile
+
+python2 -m jcvi.compara.synteny screen --minspan=30 --simple GH_hau.GH_zju.anchors GH_hau.GH_zju.anchors.new 
+
+此处解释下 [jcvi.compara.synteny screen] 文档中的参数:
+--minspan=Only blocks with span
+--minsize=Only blocks with anchors 
+
+#第四步 准备kartype文件
+需要seqids（染色体的名称，每行一个物种，逗号分隔） 及 layout（画图的主要设置文件）
+
+其中layout的格式如下（一个三个物种比较的文件）：
+# y, xstart, xend, rotation, color, label, va,  bed
+ .7,     .1,    .8,       15,      , GH_hau, top, GH_hau.bed
+ .5,     .1,    .8,       0,      , GH_zju, top, GH_zju.bed
+ .3,     .1,    .8,       -15,     ,GH_zms,bottom,GH_zms.bed
+# edges
+e, 0, 1, GH_hau.GH_zju.anchors.fill.simple
+e, 1, 2, GH_zju.GH_zms.anchors.fill.simple
+
+#edge中的文件 顺序切记要顺序排好 
+
